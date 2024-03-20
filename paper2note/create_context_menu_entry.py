@@ -1,23 +1,10 @@
 from pdf2bib import pdf2bib
 from context_menu import menus
-
-
-# def create_contect_menue_entry():
-#     key = winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, 'SystemFileAssociations\\.pdf\\shell', 0, winreg.KEY_SET_VALUE)
-#     subkey = winreg.CreateKey(key, 'Run script')
-#     winreg.SetValue(subkey, '', winreg.REG_SZ, 'Run script')
-#     command_key = winreg.CreateKey(subkey, 'command')
-#     script_path = os.path.realpath(__file__)
-#     winreg.SetValue(command_key, '', winreg.REG_SZ, f'python {script_path} "%1"')
-#     winreg.CloseKey(command_key)
-#     winreg.CloseKey(subkey)
-#     winreg.CloseKey(key)
+from os import path
+from sys import executable as python_path
 
 
 def install_right_click():
-    if not (os.name == "nt"):
-        logger.error(f"This functionality is currently implemented only for Windows.")
-        return
     python_folder = path.dirname(python_path)
     if (
         python_folder[-7:].lower() == "scripts"
