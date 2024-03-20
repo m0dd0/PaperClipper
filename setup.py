@@ -8,9 +8,9 @@ setup(
     description="",
     long_description=open("README.md").read(),
     install_requires=["pdf2bib", "context_menu"],
-    extra_requires={"dev": ["pytest", "black"]},
+    extras_require={"dev": ["pytest", "black"]},
     entry_points={
-        "console_scripts": ["paper2logseq = paper2logseq.main:main"],
+        "console_scripts": ["paper2note = paper2note.main:main"],
     },
     # url='http://github.com/yourusername/your-app-name',
     author="Moritz Hesche",
