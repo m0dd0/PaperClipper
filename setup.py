@@ -11,8 +11,8 @@ setup(
     extras_require={"dev": ["pytest", "black"]},
     entry_points={
         "console_scripts": [
-            "paper2note = paper2note.paper2note:parse_args",
-            "paper2note-context-menu = paper2note.create_context_menu_entry:parse_args",
+            "paper2note = paper2note.paper2note:commandline_entrypoint",
+            "paper2note-context-menu = paper2note.create_context_menu_entry:commandline_entrypoint",
         ],
     },
     url="https://github.com/m0dd0/paper2note",

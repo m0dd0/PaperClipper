@@ -1,27 +1,24 @@
 import winreg as reg
-from typing import List
 import argparse
 import sys
 from pathlib import Path
 
 
-def create_file_associated_menu(menu_name: str, parent_context_menus: List = None):
-    """Create a context menu entry for a file type.
-    This is a expandable element in the context menu and shows a submenu.
-    It is only available for files of the specified type.
+def remove_file_associated_context_command(command_name: str, file_type=".pdf"):
+    """Remove a context menu entry for a file type.
 
     Args:
-        menu_name (str): The displayed name of the context menu entry.
-        parent_context_menus (List, optional): The names of possible parent menus. Defaults to None.
-
-    Raises:
-        NotImplementedError: This method is currently not implemented.
+        command_name (str): The name of the command.
+        file_type (str, optional): The file type for which the context menu entry should be removed. Defaults to ".pdf".
     """
-    raise NotImplementedError("This script is only for Windows.")
+
+    key_name = f"SystemFileAssociations\\{file_type}\\shell\\{command_name}"
+    reg.DeleteKey(reg.HKEY_CLASSES_ROOT, key_name)
+    # TODO test
 
 
 def create_file_associated_context_command(
-    command_name: str, command: str, file_type=".pdf", parent_context_menus: List = None
+    command_name: str, command: str, file_type=".pdf"
 ):
     """Create a context menu entry for a file type.
     This is the actual command that is executed when the context menu entry is clicked.
@@ -31,18 +28,9 @@ def create_file_associated_context_command(
         command (str): The command that should be executed when the context menu entry is clicked.
             Note that the full path to the executable must be given, an short command like 'notepad' will not work.
         file_type (str, optional): The file type for which the context menu entry should be created. Defaults to ".pdf".
-        parent_context_menus (List, optional): The names of possible parent menus. Defaults to None.
-            If parent menus are given, the context menu entry will be created as a subentry of the parent menu.
-            The parent menus must have been created before.
     """
-    parent_context_menus = parent_context_menus or []
 
-    # using .join is not a big help here
-    parent_menu_key_prefix = ""
-    for parent_menu in parent_context_menus:
-        parent_menu_key_prefix += f"\\shell\\{parent_menu}"
-
-    key_name = f"SystemFileAssociations\\{file_type}{parent_menu_key_prefix}\\shell\\{command_name}"
+    key_name = f"SystemFileAssociations\\{file_type}\\shell\\{command_name}"
 
     key = reg.CreateKey(reg.HKEY_CLASSES_ROOT, key_name)
     reg.CloseKey(key)
@@ -61,7 +49,7 @@ def get_executable_path():
     return paper2note_executable_path
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser(
         description="Setup a context menu entry for paper2note."
     )
@@ -80,13 +68,35 @@ def main():
         help="The file type for which the context menu entry should be created.",
     )
 
+    parser.add_argument(
+        "--entry-name",
+        type=str,
+        default="paper2note",
+        help="The displayed name of the context menu entry.",
+    )
+
+    parser.add_argument(
+        "--remove",
+        action="store_true",
+        help="Remove the context menu entry instead of creating it.",
+    )
+
     args = parser.parse_args()
 
-    create_file_associated_context_command(
-        command_name="paper2note",
-        command=args.command,
-        file_type=args.file_type,
-    )
+    return args
+
+
+def commandline_entrypoint():
+    args = parse_args()
+
+    if args.remove:
+        raise NotImplementedError("This script is only for Windows.")
+    else:
+        create_file_associated_context_command(
+            command_name=args.entry_name,
+            command=args.command,
+            file_type=args.file_type,
+        )
 
 
 if __name__ == "__main__":

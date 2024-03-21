@@ -5,6 +5,17 @@ import pdf2bib
 import pdf2doi
 
 
+def input_validate_path(path: str, must_exist: bool = False) -> Path:
+    path = Path(path)
+    if not path.is_absolute():
+        path = Path.cwd() / path
+
+    if must_exist and not path.exists():
+        raise FileNotFoundError(f"{path} does not exist.")
+
+    return path
+
+
 def paper2note(
     pdf: Path,
     pdf_rename_pattern: str = None,
@@ -30,23 +41,27 @@ def paper2note(
             a default note template.
         note_filename_pattern (str, optional): Pattern to name the note file. All entries
             of the metadata can be used as placeholders. Placeholder must be in curly braces.
-            Defaults to the same name as the (renamed) pdf file.
+            Defaults to the same as the pdf_rename_pattern.
         pdf2bib_config (Dict, optional): Configurations for pdf2bib. Defaults to None.
         pdf2doi_config (Dict, optional): Configurations for pdf2doi. Defaults to None.
     """
     # handle default values, allow also str instead of Path, and make paths absolute
+    pdf = input_validate_path(pdf, must_exist=True)
+    if not pdf.suffix == ".pdf":
+        raise ValueError("The provided file is not a pdf file.")
+
+    pdf_rename_pattern = pdf_rename_pattern or pdf.stem + ".pdf"
+
     note_target_folder = note_target_folder or pdf.parent
-    note_target_folder = Path(note_target_folder)
-    if not note_target_folder.is_absolute():
-        note_target_folder = Path.cwd() / note_target_folder
+    note_target_folder = input_validate_path(note_target_folder)
 
     note_template_path = (
         note_template_path
         or Path(__file__).parent.parent / "templates" / "default_note_template.md"
     )
-    note_template_path = Path(note_template_path)
-    if not note_template_path.is_absolute():
-        note_template_path = Path.cwd() / note_template_path
+    note_template_path = input_validate_path(note_template_path, must_exist=True)
+
+    note_filename_pattern = note_filename_pattern or pdf_rename_pattern
 
     pdf2bib_config = pdf2bib_config or {}
     pdf2doi_config = pdf2doi_config or {}
@@ -58,30 +73,22 @@ def paper2note(
         pdf2bib.config.set(config_name, config_value)
 
     # extract metadata
+    # TODO handle case of non-existing doi
     bib = pdf2bib.pdf2bib(str(pdf))["metadata"]
 
     # rename pdf
-    # TODO check if renamed pdf already exists
-    if pdf_rename_pattern is None:
-        new_pdf_name = pdf.stem + ".pdf"
-    else:
-        new_pdf_name = pdf_rename_pattern.format(**bib)
-
-    pdf.rename(pdf.parent / new_pdf_name)
+    new_pdf_path = pdf.parent / pdf_rename_pattern.format(**bib)
+    if new_pdf_path != pdf and not new_pdf_path.exists():
+        pdf.rename(new_pdf_path)
 
     # create note.md
-    if note_filename_pattern is None:
-        note_filename = new_pdf_name
-    else:
-        note_filename = note_filename_pattern.format(**bib)
+    note_path = note_target_folder / note_filename_pattern.format(**bib)
 
-    note_content = note_template_path.read_text().format(**bib)
-
-    # TODO check if note already exists
-    if not note_target_folder.exists():
-        note_target_folder.mkdir(parents=True)
-    with open(note_target_folder / note_filename, "w") as f:
-        f.write(note_content)
+    if not note_path.exists():
+        if not note_target_folder.exists():
+            note_target_folder.mkdir(parents=True)
+        with open(note_path, "w") as f:
+            f.write(note_template_path.read_text().format(**bib))
 
 
 def parse_args() -> None:
@@ -110,11 +117,16 @@ def parse_args() -> None:
         "--note-filename-pattern",
         type=str,
         # default="{title}.md",
-        help="Pattern to name the note file. All entries of the metadata can be used as placeholders. Placeholder must be in curly braces. Defaults to '{title}'.",
+        help="Pattern to name the note file. All entries of the metadata can be used as placeholders. Placeholder must be in curly braces. Defaults to the same name as the (renamed) pdf file.",
     )
 
     args = parser.parse_args()
 
+    return args
+
+
+def commandline_entrypoint() -> None:
+    args = parse_args()
     paper2note(
         args.pdf,
         args.pdf_rename_pattern,
