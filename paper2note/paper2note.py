@@ -1,8 +1,12 @@
 from pathlib import Path
 import argparse
 from typing import Dict
+import logging
+
 import pdf2bib
 import pdf2doi
+
+logger = logging.getLogger("paper2note")
 
 
 def input_validate_path(path: str, must_exist: bool = False) -> Path:
@@ -50,7 +54,7 @@ def paper2note(
     if not pdf.suffix == ".pdf":
         raise ValueError("The provided file is not a pdf file.")
 
-    pdf_rename_pattern = pdf_rename_pattern or pdf.stem + ".pdf"
+    pdf_rename_pattern = pdf_rename_pattern or pdf.stem
 
     note_target_folder = note_target_folder or pdf.parent
     note_target_folder = input_validate_path(note_target_folder)
@@ -73,22 +77,29 @@ def paper2note(
         pdf2bib.config.set(config_name, config_value)
 
     # extract metadata
+    logger.info(f"Extracting metadata from {pdf}.")
     # TODO handle case of non-existing doi
     bib = pdf2bib.pdf2bib(str(pdf))["metadata"]
 
     # rename pdf
-    new_pdf_path = pdf.parent / pdf_rename_pattern.format(**bib)
+    new_pdf_path = pdf.parent / f"{pdf_rename_pattern.format(**bib)}.pdf"
     if new_pdf_path != pdf and not new_pdf_path.exists():
+        logger.info(f"Renaming {pdf} to {new_pdf_path}.")
         pdf.rename(new_pdf_path)
+    else:
+        logger.info(f"Did not rename {pdf}.")
 
     # create note.md
-    note_path = note_target_folder / note_filename_pattern.format(**bib)
+    note_path = note_target_folder / f"{note_filename_pattern.format(**bib)}.md"
 
     if not note_path.exists():
         if not note_target_folder.exists():
             note_target_folder.mkdir(parents=True)
+        logger.info(f"Creating note at {note_path}.")
         with open(note_path, "w") as f:
             f.write(note_template_path.read_text().format(**bib))
+    else:
+        logger.warning(f"Did not create note at {note_path} because it already exists.")
 
 
 def parse_args() -> None:
