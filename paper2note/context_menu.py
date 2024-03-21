@@ -1,16 +1,40 @@
 import winreg as reg
-from sys import executable as python_path
 from typing import List
 import argparse
+import sys
+from pathlib import Path
 
 
 def create_file_associated_menu(menu_name: str, parent_context_menus: List = None):
+    """Create a context menu entry for a file type.
+    This is a expandable element in the context menu and shows a submenu.
+    It is only available for files of the specified type.
+
+    Args:
+        menu_name (str): The displayed name of the context menu entry.
+        parent_context_menus (List, optional): The names of possible parent menus. Defaults to None.
+
+    Raises:
+        NotImplementedError: This method is currently not implemented.
+    """
     raise NotImplementedError("This script is only for Windows.")
 
 
 def create_file_associated_context_command(
     command_name: str, command: str, file_type=".pdf", parent_context_menus: List = None
 ):
+    """Create a context menu entry for a file type.
+    This is the actual command that is executed when the context menu entry is clicked.
+
+    Args:
+        command_name (str): The name of the command.
+        command (str): The command that should be executed when the context menu entry is clicked.
+            Note that the full path to the executable must be given, an short command like 'notepad' will not work.
+        file_type (str, optional): The file type for which the context menu entry should be created. Defaults to ".pdf".
+        parent_context_menus (List, optional): The names of possible parent menus. Defaults to None.
+            If parent menus are given, the context menu entry will be created as a subentry of the parent menu.
+            The parent menus must have been created before.
+    """
     parent_context_menus = parent_context_menus or []
 
     # using .join is not a big help here
@@ -27,6 +51,16 @@ def create_file_associated_context_command(
     reg.CloseKey(key)
 
 
+def get_executable_path():
+    python_folder = Path(sys.executable).parent
+    if python_folder.parts[-1].lower() == "scripts":
+        paper2note_executable_path = python_folder + "\pdf2bib.exe"
+    else:
+        paper2note_executable_path = python_folder + "\scripts\paper2note.exe"
+
+    return paper2note_executable_path
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Setup a context menu entry for paper2note."
@@ -35,20 +69,15 @@ def main():
     parser.add_argument(
         "command",
         type=str,
+        default=f'{get_executable_path()} "%1"',
         help="The command to be executed when the context menu entry is clicked.",
     )
 
     parser.add_argument(
         "file_type",
         type=str,
+        default=".pdf",
         help="The file type for which the context menu entry should be created.",
-    )
-
-    parser.add_argument(
-        "--parent_context_menus",
-        type=str,
-        nargs="+",
-        help="The parent context menus under which the entry should be created.",
     )
 
     args = parser.parse_args()
@@ -57,7 +86,6 @@ def main():
         command_name="paper2note",
         command=args.command,
         file_type=args.file_type,
-        parent_context_menus=args.parent_context_menus,
     )
 
 

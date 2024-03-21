@@ -1,21 +1,39 @@
 from pathlib import Path
 import argparse
 from typing import Dict
-from datetime import datetime
-import time
 import pdf2bib
 import pdf2doi
 
 
 def paper2note(
     pdf: Path,
-    pdf_rename_pattern: str = "{title}.pdf",
+    pdf_rename_pattern: str = None,
     note_target_folder: Path = None,
     note_template_path: Path = None,
-    note_filename_pattern: str = "{title}.md",
+    note_filename_pattern: str = None,
     pdf2bib_config: Dict = None,
     pdf2doi_config: Dict = None,
 ):
+    """Create a reference note from the extracted metadata of a paper and save it in a folder.
+    Optionally also renames the pdf file according to the metadata.
+
+    Args:
+        pdf (Path): Path to the pdf file of the paper.
+        pdf_rename_pattern (str, optional): Pattern to rename the pdf file. All entries
+            of the metadata can be used as placeholders. Placeholder must be in curly braces.
+            If not provided no renaming will be executed.
+        note_target_folder (Path, optional): Folder where the note should be saved to.
+            Can be an absolute path or relative to the directory from wich the script is
+            called. Defaults to the directory of the pdf file.
+        note_template_path (Path, optional): Path to the note template. Can be an absolute
+            path or relative to the directory from wich the script is called. Defaults to
+            a default note template.
+        note_filename_pattern (str, optional): Pattern to name the note file. All entries
+            of the metadata can be used as placeholders. Placeholder must be in curly braces.
+            Defaults to the same name as the (renamed) pdf file.
+        pdf2bib_config (Dict, optional): Configurations for pdf2bib. Defaults to None.
+        pdf2doi_config (Dict, optional): Configurations for pdf2doi. Defaults to None.
+    """
     # handle default values, allow also str instead of Path, and make paths absolute
     note_target_folder = note_target_folder or pdf.parent
     note_target_folder = Path(note_target_folder)
@@ -43,20 +61,30 @@ def paper2note(
     bib = pdf2bib.pdf2bib(str(pdf))["metadata"]
 
     # rename pdf
-    pdf.rename(pdf.parent / pdf_rename_pattern.format(**bib))
+    # TODO check if renamed pdf already exists
+    if pdf_rename_pattern is None:
+        new_pdf_name = pdf.stem + ".pdf"
+    else:
+        new_pdf_name = pdf_rename_pattern.format(**bib)
+
+    pdf.rename(pdf.parent / new_pdf_name)
 
     # create note.md
-    note = note_template_path.read_text().format(**bib)
-    note_filename = note_filename_pattern.format(**bib)
+    if note_filename_pattern is None:
+        note_filename = new_pdf_name
+    else:
+        note_filename = note_filename_pattern.format(**bib)
 
-    # create the file
+    note_content = note_template_path.read_text().format(**bib)
+
+    # TODO check if note already exists
     if not note_target_folder.exists():
         note_target_folder.mkdir(parents=True)
     with open(note_target_folder / note_filename, "w") as f:
-        f.write(note)
+        f.write(note_content)
 
 
-def main():
+def parse_args() -> None:
     parser = argparse.ArgumentParser(
         description="Create a reference note from the extracted metadata of a paper and save it in a folder. Also renames the pdf file."
     )
@@ -65,8 +93,8 @@ def main():
     parser.add_argument(
         "--pdf-rename-pattern",
         type=str,
-        default="{title}.pdf",
-        help="Pattern to rename the pdf file. All entries of the metadata can be used as placeholders. Placeholder must be in curly braces. Defaults to '{title}'.",
+        # default="{title}.pdf",
+        help="Pattern to rename the pdf file. All entries of the metadata can be used as placeholders. Placeholder must be in curly braces. If not provided no renaming will be executed.",
     )
     parser.add_argument(
         "--note-target-folder",
@@ -76,34 +104,28 @@ def main():
     parser.add_argument(
         "--note-template-path",
         type=Path,
-        help="Path to the note template. Can be an absolute path or relative to the directory from wich the script is called. Defaults to the default note template.",
+        help="Path to the note template. Can be an absolute path or relative to the directory from wich the script is called. Defaults to a default note template.",
     )
     parser.add_argument(
         "--note-filename-pattern",
         type=str,
-        default="{title}.md",
+        # default="{title}.md",
         help="Pattern to name the note file. All entries of the metadata can be used as placeholders. Placeholder must be in curly braces. Defaults to '{title}'.",
     )
 
     args = parser.parse_args()
 
-    current_time = datetime.now().strftime("%Y%m%d%H%M%S")
-    with open(f"C:/Users/mohes/Desktop/{current_time}.txt", "w") as f:
-        f.write("")
-
-    print("sdfsdfsdfsdfsdf")
-    time.sleep(10)
-
-    # paper2note(
-    #     args.pdf,
-    #     args.pdf_rename_pattern,
-    #     args.note_target_folder,
-    #     args.note_template_path,
-    #     args.note_filename_pattern,
-    # )
+    paper2note(
+        args.pdf,
+        args.pdf_rename_pattern,
+        args.note_target_folder,
+        args.note_template_path,
+        args.note_filename_pattern,
+    )
 
 
 if __name__ == "__main__":
+    # for quick testing
     pdf_path = Path(
         "C:/Users/mohes/Documents/LogSeqNotes/assets/storages/Papers/2304.02532.pdf"
     )

@@ -7,15 +7,15 @@ setup(
     license="MIT",
     description="",
     long_description=open("README.md").read(),
-    install_requires=["pdf2bib", "context_menu"],
+    install_requires=["pdf2bib"],
     extras_require={"dev": ["pytest", "black"]},
     entry_points={
         "console_scripts": [
-            "paper2note = paper2note.main:main",
-            "paper2note-context-menu = paper2note.create_context_menu_entry:main",
+            "paper2note = paper2note.paper2note:parse_args",
+            "paper2note-context-menu = paper2note.create_context_menu_entry:parse_args",
         ],
     },
-    # url='http://github.com/yourusername/your-app-name',
+    url="https://github.com/m0dd0/paper2note",
     author="Moritz Hesche",
     author_email="mo.hesche@gmail.com",
 )
