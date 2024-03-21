@@ -1,7 +1,8 @@
 from pathlib import Path
 import argparse
 from typing import Dict
-
+from datetime import datetime
+import time
 import pdf2bib
 import pdf2doi
 
@@ -86,18 +87,25 @@ def main():
 
     args = parser.parse_args()
 
-    paper2note(
-        args.pdf,
-        args.pdf_rename_pattern,
-        args.note_target_folder,
-        args.note_template_path,
-        args.note_filename_pattern,
-    )
+    current_time = datetime.now().strftime("%Y%m%d%H%M%S")
+    with open(f"C:/Users/mohes/Desktop/{current_time}.txt", "w") as f:
+        f.write("")
+
+    print("sdfsdfsdfsdfsdf")
+    time.sleep(10)
+
+    # paper2note(
+    #     args.pdf,
+    #     args.pdf_rename_pattern,
+    #     args.note_target_folder,
+    #     args.note_template_path,
+    #     args.note_filename_pattern,
+    # )
 
 
 if __name__ == "__main__":
     pdf_path = Path(
-        "C:/Users/mohes/Documents/LogSeqNotes/assets/storages/Papers/1706.03762.pdf"
+        "C:/Users/mohes/Documents/LogSeqNotes/assets/storages/Papers/2304.02532.pdf"
     )
     assert pdf_path.exists()
 
