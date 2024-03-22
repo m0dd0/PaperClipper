@@ -142,16 +142,22 @@ class TestDOIExtraction:
         "pdf_stem, expected_title",
         [
             (
-                "2304.02532",
-                "Goal-Conditioned Imitation Learning using Score-based Diffusion Policies",
+                "2303.04137",
+                "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion",
             ),
             (
-                "liu23d",
-                "Byzantine-Robust Learning on Heterogeneous Data via Gradient Splitting",
+                "NeurIPS-2023-cross-episodic-curriculum-for-transformer-agents-Paper-Conference",
+                "Cross-Episodic Curriculum for Transformer Agents",
             ),
             (
-                "NeurIPS-2023-are-emergent-abilities-of-large-language-models-a-mirage-Paper-Conference",
-                "Are Emergent Abilities of Large Language Models a Mirage?",
+                "NeurIPS-2023-modelling-cellular-perturbations-with-the-sparse-additive-mechanism-shift-variational-autoencoder-Paper-Conference",
+                "Modelling Cellular Perturbations with the Sparse Additive Mechanism Shift Variational Autoencoder",
+            ),
+            ("NIPS-2017-attention-is-all-you-need-Paper", "Attention Is All You Need"),
+            ("nova23a", "Gradient-Free Structured Pruning with Unlabeled Data"),
+            (
+                "wang23ao",
+                "Learning to Bid in Repeated First-Price Auctions with Budgets",
             ),
         ],
     )
@@ -166,6 +172,7 @@ class TestDOIExtraction:
 
         result = pdf2bib(str(pdf_path))
 
-        print(result["metadata"]["title"].lower(), expected_title.lower())
-        print(result["method"])
-        # assert result["metadata"]["title"].lower() == expected_title.lower()
+        # print(result["metadata"]["title"].lower())
+        # print(expected_title.lower())
+        # print(result["method"])
+        assert result["metadata"]["title"].lower() == expected_title.lower()
