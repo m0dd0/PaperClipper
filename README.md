@@ -1,6 +1,11 @@
 # Paper2Note
 This is a little utility that helps to create templated notes from scientific papers. 
-It is designed to work with papers in PDF format, and it is based on the great [pdf2bib](https://github.com/MicheleCotrufo/pdf2bib).
+It is designed to work with papers in PDF format, and it is based on the great [pdf2bib library](https://github.com/MicheleCotrufo/pdf2bib).
+
+## Example Use Case
+I use this tool extensively in conjuction with [logseq](https://logseq.com/) to create a knowledge base of scientific papers without any need to use separate reference management software.
+
+TODO gif here
 
 ## Contents
 
@@ -11,6 +16,8 @@ pip install git+https://github.com/m0dd0/paper2note.git
 ```
 
 ## Usage
+The tool can be used as a command line utility, as a context menu entry or as a python library.
+
 ### Command line
 To create a reference note from a paper, you can use the following command:
 ```bash
@@ -38,12 +45,13 @@ options:
 ```
 
 ### Context menu
-The command described above can also be executed by right-clicking on a pdf file and selecting the "paper2note" option. To enable this functionality, you can use the following command:
+The command described above can also be executed by right-clicking on a pdf file and selecting the "paper2note" option. 
+To enable this functionality, use the following command:
 ```bash
 paper2note-context-menu
 ```
-This will run the command described above using the selected pdf file as an argument and the default options.
-If you want to customize the behavior of the context menu, you can use the following command:
+
+If you want to customize the behavior of the context menu entry, you can pass the command which should be executed when the context menu entry is clicked as an argument to the `paper2note-context-menu` command like this:
 ```bash
 paper2note-context-menu "paper2note --pdf-rename-pattern "{title} - {author}" --note-target-folder "path/to/notes" --note-template-path "path/to/template.md" --note-filename-pattern "{title} - {author}""
 ```
@@ -59,12 +67,23 @@ paper2note("path/to/paper.pdf", pdf_rename_pattern="{title} - {author}", note_ta
 ```
 Have a look at the docstring of the function for more information.
 
-## Common Metdata
-Common metadata entries which can be used in the `pdf_rename_pattern` and `note_filename_pattern`, as well as in the note template, are:
-- title
-- author
-- year
-TODO
+## Metdata
+The following keys can be used as placeholders in the `pdf_rename_pattern`, `note_filename_pattern` and the note template.
+Sometimes not all metadata can be extracted from the pdf file. In this case the respective key will be filled with a placeholder string such as e.g. `<no journal found>`.
+- `title`: The title of the paper
+- `authors`: A string of comma separated full author names
+- `year`: The year of publication
+- `month`: The month of publication
+- `day`: The day of publication
+- `journal`: The journal in which the paper was published
+- `doi`: The doi of the paper
+- `url`: The url of the paper
+- `volume`: The volume of the journal
+- `page`: The page of the journal
+- `abstract`: The abstract of the paper
+- `type`: The type of the paper
+- `author_i`: The i-th author of the paper were i is a number between 1 and the number of authors
+- `author_last`: The last named author of the paper
 
 ## Accuracy of results
 This utility uses the [pdf2bib](https://github.com/MicheleCotrufo/pdf2bib) library to extract metadata from the pdf file.
@@ -74,3 +93,6 @@ This was especially the case for papers from the Neurips conference.
 Emprically I found that one of the methods used by pdf2bib to extract metadata from the pdf file results in many false positives.
 For this reason this library uses a fork of pdf2bib in which I disabled this method.
 See [this issue](https://github.com/MicheleCotrufo/pdf2doi/issues/25) for more information.
+
+## Contribution
+Feel free to open an issue or a pull request if you have any suggestions or found a bug.

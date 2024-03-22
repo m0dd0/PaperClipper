@@ -20,6 +20,45 @@ def input_validate_path(path: str, must_exist: bool = False) -> Path:
     return path
 
 
+def clean_metadata(extraction_result: Dict) -> Dict:
+    """Clean the metadata extracted from a PDF file and add some aggrgated fields.
+
+    Args:
+        extraction_result (Dict): The metadata extracted from a PDF file as returned by pdf2bib.
+
+    Returns:
+        Dict: The cleaned metadata which is used for the templating operation.
+    """
+    metadata = extraction_result["metadata"]
+    authors_list = metadata.get("author", [])
+    authors_list = [f"{author['given']} {author['family']}" for author in authors_list]
+    cleaned_metadata = {
+        "title": metadata.get("title", "<no title found>"),
+        "authors": ", ".join(authors_list) if authors_list else "<no authors found>",
+        "year": metadata.get("year") or "????",
+        "month": metadata.get("month") or "??",
+        "day": metadata.get("day") or "??",
+        "journal": metadata.get("journal")
+        or metadata.get("ejournal")
+        or "<no journal found>",
+        "doi": metadata.get("doi") or "<no doi found>",
+        "url": metadata.get("url") or "<no url found>",
+        "volume": metadata.get("volume") or "<no volume found>",
+        "page": metadata.get("page") or "<no page found>",
+        "type": metadata.get("ENTRYTYPE") or "article",
+        "abstract": extraction_result["validation_data"].get("summary")
+        or "<no abstract found>",
+        "bibtex": extraction_result.get("bibtex") or "<no bibtex found>",
+    }
+    for i, author in enumerate(authors_list):
+        cleaned_metadata[f"author_{i+1}"] = author
+
+    if authors_list:
+        cleaned_metadata["author_last"] = authors_list[-1]
+
+    return cleaned_metadata
+
+
 def paper2note(
     pdf: Path,
     pdf_rename_pattern: str = None,
@@ -79,10 +118,12 @@ def paper2note(
     # extract metadata
     logger.info(f"Extracting metadata from {pdf}.")
     # TODO handle case of non-existing doi
-    bib = pdf2bib.pdf2bib(str(pdf))["metadata"]
+    # TODO do not add doi to psd metadata
+    result = pdf2bib.pdf2bib(str(pdf))
+    data = clean_metadata(result)
 
     # rename pdf
-    new_pdf_path = pdf.parent / f"{pdf_rename_pattern.format(**bib)}.pdf"
+    new_pdf_path = pdf.parent / f"{pdf_rename_pattern.format(**data)}.pdf"
     if new_pdf_path != pdf and not new_pdf_path.exists():
         logger.info(f"Renaming {pdf} to {new_pdf_path}.")
         pdf.rename(new_pdf_path)
@@ -90,14 +131,16 @@ def paper2note(
         logger.info(f"Did not rename {pdf}.")
 
     # create note.md
-    note_path = note_target_folder / f"{note_filename_pattern.format(**bib)}.md"
+    note_path = note_target_folder / f"{note_filename_pattern.format(**data)}.md"
+    note_content = note_template_path.read_text().format(**data)
 
     if not note_path.exists():
         if not note_target_folder.exists():
             note_target_folder.mkdir(parents=True)
+
         logger.info(f"Creating note at {note_path}.")
         with open(note_path, "w") as f:
-            f.write(note_template_path.read_text().format(**bib))
+            f.write(note_content)
     else:
         logger.warning(f"Did not create note at {note_path} because it already exists.")
 
