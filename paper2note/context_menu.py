@@ -89,8 +89,12 @@ def parse_args():
 def commandline_entrypoint():
     args = parse_args()
 
+    # TODO check for OS
+
     if args.remove:
-        raise NotImplementedError("This script is only for Windows.")
+        raise NotImplementedError(
+            "The removal of context menu entries is not yet implemented."
+        )
     else:
         create_file_associated_context_command(
             command_name=args.entry_name,
