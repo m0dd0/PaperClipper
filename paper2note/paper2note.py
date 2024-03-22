@@ -2,9 +2,11 @@ from pathlib import Path
 import argparse
 from typing import Dict
 import logging
+import string
 
 import pdf2bib
 import pdf2doi
+from pathvalidate import sanitize_filepath
 
 logger = logging.getLogger("paper2note")
 
@@ -30,8 +32,10 @@ def clean_metadata(extraction_result: Dict) -> Dict:
         Dict: The cleaned metadata which is used for the templating operation.
     """
     metadata = extraction_result["metadata"]
+
     authors_list = metadata.get("author", [])
     authors_list = [f"{author['given']} {author['family']}" for author in authors_list]
+
     cleaned_metadata = {
         "title": metadata.get("title", "<no title found>"),
         "authors": ", ".join(authors_list) if authors_list else "<no authors found>",
@@ -46,10 +50,12 @@ def clean_metadata(extraction_result: Dict) -> Dict:
         "volume": metadata.get("volume") or "<no volume found>",
         "page": metadata.get("page") or "<no page found>",
         "type": metadata.get("ENTRYTYPE") or "article",
-        "abstract": extraction_result["validation_data"].get("summary")
+        "abstract": extraction_result["validation_info"].get("summary")
         or "<no abstract found>",
         "bibtex": extraction_result.get("bibtex") or "<no bibtex found>",
+        "extraction_method": extraction_result["method"],
     }
+
     for i, author in enumerate(authors_list):
         cleaned_metadata[f"author_{i+1}"] = author
 
@@ -57,6 +63,26 @@ def clean_metadata(extraction_result: Dict) -> Dict:
         cleaned_metadata["author_last"] = authors_list[-1]
 
     return cleaned_metadata
+
+
+def format_pattern(string_to_format: str, data: Dict, is_filename: bool = False) -> str:
+    field_names = [
+        field
+        for _, field, _, _ in string.Formatter().parse(string_to_format)
+        if field is not None
+    ]
+    for field_name in field_names:
+        if field_name not in data:
+            string_to_format = string_to_format.replace(
+                f"{{{field_name}}}", f"<'{field_name}' IS AN INVALID FORMAT KEY>"
+            )
+            logger.warning(f"'{field_name}' IS AN INVALID FORMAT KEY")
+    string_to_format = string_to_format.format(**data)
+
+    if is_filename:
+        string_to_format = sanitize_filepath(string_to_format)
+
+    return string_to_format
 
 
 def paper2note(
@@ -88,7 +114,7 @@ def paper2note(
         pdf2bib_config (Dict, optional): Configurations for pdf2bib. Defaults to None.
         pdf2doi_config (Dict, optional): Configurations for pdf2doi. Defaults to None.
     """
-    # handle default values, allow also str instead of Path, and make paths absolute
+    ### handle default values, allow also str instead of Path, and make paths absolute ###
     pdf = input_validate_path(pdf, must_exist=True)
     if not pdf.suffix == ".pdf":
         raise ValueError("The provided file is not a pdf file.")
@@ -107,32 +133,33 @@ def paper2note(
     note_filename_pattern = note_filename_pattern or pdf_rename_pattern
 
     pdf2bib_config = pdf2bib_config or {}
-    pdf2doi_config = pdf2doi_config or {}
+    pdf2doi_config = pdf2doi_config or {"save_identifier_metadata": False}
 
-    # set config values for underlying libraries
+    ### set config values for underlying libraries ###
     for config_name, config_value in pdf2doi_config.items():
         pdf2doi.config.set(config_name, config_value)
     for config_name, config_value in pdf2bib_config.items():
         pdf2bib.config.set(config_name, config_value)
 
-    # extract metadata
+    ### extract metadata ###
     logger.info(f"Extracting metadata from {pdf}.")
     # TODO handle case of non-existing doi
-    # TODO do not add doi to psd metadata
     result = pdf2bib.pdf2bib(str(pdf))
     data = clean_metadata(result)
 
-    # rename pdf
-    new_pdf_path = pdf.parent / f"{pdf_rename_pattern.format(**data)}.pdf"
+    ### rename pdf ###
+    new_pdf_path = pdf.parent / f"{format_pattern(pdf_rename_pattern, data, True)}.pdf"
     if new_pdf_path != pdf and not new_pdf_path.exists():
         logger.info(f"Renaming {pdf} to {new_pdf_path}.")
         pdf.rename(new_pdf_path)
     else:
         logger.info(f"Did not rename {pdf}.")
 
-    # create note.md
-    note_path = note_target_folder / f"{note_filename_pattern.format(**data)}.md"
-    note_content = note_template_path.read_text().format(**data)
+    ### create note.md ###
+    note_path = (
+        note_target_folder / f"{format_pattern(note_filename_pattern, data, True)}.md"
+    )
+    note_content = format_pattern(note_template_path.read_text(), data)
 
     if not note_path.exists():
         if not note_target_folder.exists():
@@ -188,13 +215,3 @@ def commandline_entrypoint() -> None:
         args.note_template_path,
         args.note_filename_pattern,
     )
-
-
-if __name__ == "__main__":
-    # for quick testing
-    pdf_path = Path(
-        "C:/Users/mohes/Documents/LogSeqNotes/assets/storages/Papers/2304.02532.pdf"
-    )
-    assert pdf_path.exists()
-
-    paper2note(pdf_path)

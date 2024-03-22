@@ -10,6 +10,7 @@ setup(
     install_requires=[
         "pdf2bib",
         "pdf2doi @ git+https://github.com/m0dd0/pdf2doi.git",  # use the forked version which excludes the document_text method
+        "pathvalidate",
     ],
     extras_require={"dev": ["pytest", "black"]},
     entry_points={
