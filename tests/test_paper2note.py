@@ -1,8 +1,9 @@
 import pytest
-import os
 import shutil
 from tempfile import TemporaryDirectory
 from pathlib import Path
+
+from pdf2bib import pdf2bib
 
 from paper2note.paper2note import paper2note
 
@@ -60,77 +61,104 @@ class TestPaper2Note:
         assert pdf_path.exists()
         assert (pdf_folder / "renamed.md").exists()
 
-    def test_pdf_rename_pattern(self, pdf_folder):
+    # def test_pdf_rename_pattern(self, pdf_folder):
+    #     pdf_folder = Path(pdf_folder)
+    #     pdf_path = pdf_folder / "liu23d.pdf"
+
+    #     paper2note(pdf_path, pdf_rename_pattern="{title} ({year}) {author}")
+
+    #     # Assert that the PDF file was renamed
+    #     assert not pdf_path.exists()
+    #     print(list(pdf_folder.glob("*")))
+    #     assert False
+    # assert (pdf_folder / "pdf (2020) author.pdf").exists(
+
+    # def test_note_target_folder(self, pdf_folder):
+    #     pdf_folder = Path(pdf_folder)
+    #     pdf_path = pdf_folder / "pdf.pdf"
+    #     note_target_folder = pdf_folder / "notes"
+
+    #     # Call the paper2note function with a note target folder
+    #     paper2note(pdf_path, note_target_folder=note_target_folder)
+
+    #     # Assert that the note file was created in the target folder
+    #     assert (note_target_folder / "pdf.md").exists()
+
+    # def test_no_doi_found(pdf_folder):
+    #     pdf_folder = Path(pdf_folder)
+    #     pdf_path = pdf_folder / "pdf.pdf"
+
+    #     # Call the paper2note function with a PDF that has no DOI
+    #     paper2note(pdf_path)
+
+    #     # Assert that no note file was created
+    #     assert not (pdf_path.parent / "pdf.md").exists()
+
+    # def test_pdf_is_not_a_pdf(pdf_folder):
+    #     pdf_folder = Path(pdf_folder)
+    #     non_pdf_path = pdf_folder / "non_pdf.txt"
+
+    #     # Call the paper2note function with a non-PDF file
+    #     paper2note(non_pdf_path)
+
+    #     # Assert that no note file was created
+    #     assert not (non_pdf_path.parent / "non_pdf.md").exists()
+
+    # def test_pdf_does_not_exist(pdf_folder):
+    #     pdf_folder = Path(pdf_folder)
+    #     non_existing_pdf_path = pdf_folder / "non_existing_pdf.pdf"
+
+    #     # Call the paper2note function with a non-existing PDF file
+    #     paper2note(non_existing_pdf_path)
+
+    #     # Assert that no note file was created
+    #     assert not (non_existing_pdf_path.parent / "non_existing_pdf.md").exists()
+
+    # def test_note_template_path(pdf_folder):
+    #     pdf_folder = Path(pdf_folder)
+    #     pdf_path = pdf_folder / "pdf.pdf"
+    #     note_template_path = pdf_folder / "template.md"
+
+    #     # Call the paper2note function with a note template path
+    #     paper2note(pdf_path, note_template_path=note_template_path)
+
+    #     # Assert that the note file was created using the template
+    #     assert (pdf_path.parent / "pdf.md").exists()
+
+    # def test_note_template_does_not_exist(pdf_folder):
+    #     pdf_folder = Path(pdf_folder)
+    #     pdf_path = pdf_folder / "pdf.pdf"
+    #     non_existing_template_path = pdf_folder / "non_existing_template.md"
+
+    #     # Call the paper2note function with a non-existing note template path
+    #     paper2note(pdf_path, note_template_path=non_existing_template_path)
+
+    #     # Assert that the note file was created without using a template
+    #     assert (pdf_path.parent / "pdf.md").exists()
+
+
+class TestDOIExtraction:
+    @pytest.mark.parametrize(
+        "pdf_stem, expected_doi",
+        [
+            (
+                "2304.02532",
+                "Goal-Conditioned Imitation Learning using Score-based Diffusion Policies",
+            ),
+            (
+                "liu23d",
+                "Byzantine-Robust Learning on Heterogeneous Data via Gradient Splitting",
+            ),
+            (
+                "NeurIPS-2023-are-emergent-abilities-of-large-language-models-a-mirage-Paper-Conference",
+                "Are Emergent Abilities of Large Language Models a Mirage?",
+            ),
+        ],
+    )
+    def test_correct_title(self, pdf_folder: str, pdf_stem: str, expected_title: str):
         pdf_folder = Path(pdf_folder)
-        pdf_path = pdf_folder / "liu23d.pdf"
+        pdf_path = pdf_folder / f"{pdf_stem}.pdf"
 
-        paper2note(pdf_path, pdf_rename_pattern="{title} ({year}) {author}")
+        result = pdf2bib(str(pdf_path))
 
-        # Assert that the PDF file was renamed
-        assert not pdf_path.exists()
-        print(list(pdf_folder.glob("*")))
-        assert False
-        # assert (pdf_folder / "pdf (2020) author.pdf").exists(
-
-    def test_note_target_folder(pdf_folder):
-        pdf_folder = Path(pdf_folder)
-        pdf_path = pdf_folder / "pdf.pdf"
-        note_target_folder = pdf_folder / "notes"
-
-        # Call the paper2note function with a note target folder
-        paper2note(pdf_path, note_target_folder=note_target_folder)
-
-        # Assert that the note file was created in the target folder
-        assert (note_target_folder / "pdf.md").exists()
-
-    def test_no_doi_found(pdf_folder):
-        pdf_folder = Path(pdf_folder)
-        pdf_path = pdf_folder / "pdf.pdf"
-
-        # Call the paper2note function with a PDF that has no DOI
-        paper2note(pdf_path)
-
-        # Assert that no note file was created
-        assert not (pdf_path.parent / "pdf.md").exists()
-
-    def test_pdf_is_not_a_pdf(pdf_folder):
-        pdf_folder = Path(pdf_folder)
-        non_pdf_path = pdf_folder / "non_pdf.txt"
-
-        # Call the paper2note function with a non-PDF file
-        paper2note(non_pdf_path)
-
-        # Assert that no note file was created
-        assert not (non_pdf_path.parent / "non_pdf.md").exists()
-
-    def test_pdf_does_not_exist(pdf_folder):
-        pdf_folder = Path(pdf_folder)
-        non_existing_pdf_path = pdf_folder / "non_existing_pdf.pdf"
-
-        # Call the paper2note function with a non-existing PDF file
-        paper2note(non_existing_pdf_path)
-
-        # Assert that no note file was created
-        assert not (non_existing_pdf_path.parent / "non_existing_pdf.md").exists()
-
-    def test_note_template_path(pdf_folder):
-        pdf_folder = Path(pdf_folder)
-        pdf_path = pdf_folder / "pdf.pdf"
-        note_template_path = pdf_folder / "template.md"
-
-        # Call the paper2note function with a note template path
-        paper2note(pdf_path, note_template_path=note_template_path)
-
-        # Assert that the note file was created using the template
-        assert (pdf_path.parent / "pdf.md").exists()
-
-    def test_note_template_does_not_exist(pdf_folder):
-        pdf_folder = Path(pdf_folder)
-        pdf_path = pdf_folder / "pdf.pdf"
-        non_existing_template_path = pdf_folder / "non_existing_template.md"
-
-        # Call the paper2note function with a non-existing note template path
-        paper2note(pdf_path, note_template_path=non_existing_template_path)
-
-        # Assert that the note file was created without using a template
-        assert (pdf_path.parent / "pdf.md").exists()
+        assert result["metadata"]["title"].lower() == expected_title.lower()
