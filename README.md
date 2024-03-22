@@ -65,3 +65,12 @@ Common metadata entries which can be used in the `pdf_rename_pattern` and `note_
 - author
 - year
 TODO
+
+## Accuracy of results
+This utility uses the [pdf2bib](https://github.com/MicheleCotrufo/pdf2bib) library to extract metadata from the pdf file.
+The pdf2bib library tries 5 different methods one after another to extract metadata is described on the respective github page.
+For my usecase, the results were accurate in most cases, but there were also cases where the metadata was not extracted correctly.
+This was especially the case for papers from the Neurips conference.
+Emprically I found that one of the methods used by pdf2bib to extract metadata from the pdf file results in many false positives.
+For this reason this library uses a fork of pdf2bib in which I disabled this method.
+See [this issue](https://github.com/MicheleCotrufo/pdf2doi/issues/25) for more information.
