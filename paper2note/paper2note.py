@@ -31,7 +31,7 @@ def clean_metadata(extraction_result: Dict) -> Dict:
     Returns:
         Dict: The cleaned metadata which is used for the templating operation.
     """
-    metadata = extraction_result["metadata"]
+    metadata = extraction_result["metadata"] or {}
 
     authors_list = metadata.get("author", [])
     authors_list = [f"{author['given']} {author['family']}" for author in authors_list]
@@ -50,7 +50,7 @@ def clean_metadata(extraction_result: Dict) -> Dict:
         "volume": metadata.get("volume") or "<no volume found>",
         "page": metadata.get("page") or "<no page found>",
         "type": metadata.get("ENTRYTYPE") or "article",
-        "abstract": extraction_result["validation_info"].get("summary")
+        "abstract": (extraction_result["validation_info"] or {}).get("summary")
         or "<no abstract found>",
         "bibtex": extraction_result.get("bibtex") or "<no bibtex found>",
         "extraction_method": extraction_result["method"],
@@ -74,9 +74,9 @@ def format_pattern(string_to_format: str, data: Dict, is_filename: bool = False)
     for field_name in field_names:
         if field_name not in data:
             string_to_format = string_to_format.replace(
-                f"{{{field_name}}}", f"<'{field_name}' IS AN INVALID FORMAT KEY>"
+                f"{{{field_name}}}", f"<'{field_name}' IS AN INVALID PLACEHOLDER>"
             )
-            logger.warning(f"'{field_name}' IS AN INVALID FORMAT KEY")
+            logger.warning(f"'{field_name}' IS AN INVALID PLACEHOLDER")
     string_to_format = string_to_format.format(**data)
 
     if is_filename:
@@ -143,8 +143,11 @@ def paper2note(
 
     ### extract metadata ###
     logger.info(f"Extracting metadata from {pdf}.")
-    # TODO handle case of non-existing doi
     result = pdf2bib.pdf2bib(str(pdf))
+    if not result["metadata"]:
+        logger.warning(f"No metadata found for {pdf}.")
+        # TODO popup
+        return
     data = clean_metadata(result)
 
     ### rename pdf ###
@@ -154,6 +157,7 @@ def paper2note(
         pdf.rename(new_pdf_path)
     else:
         logger.info(f"Did not rename {pdf}.")
+    data["path"] = new_pdf_path
 
     ### create note.md ###
     note_path = (
@@ -170,6 +174,7 @@ def paper2note(
             f.write(note_content)
     else:
         logger.warning(f"Did not create note at {note_path} because it already exists.")
+        # TODO popup
 
 
 def parse_args() -> None:

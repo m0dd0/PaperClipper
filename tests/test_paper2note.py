@@ -40,7 +40,7 @@ class TestPaper2Note:
         assert (pdf_path.parent / f"{pdf_path.stem}.md").exists()
         assert pdf_path.exists()
 
-    def test_note_target_folder(self, pdf_folder):
+    def test_note_target_folder(self, pdf_folder: str):
         pdf_folder = Path(pdf_folder)
         pdf_path = pdf_folder / f"{DEFAULT_TEST_PDF_STEM}.pdf"
         note_target_folder = pdf_folder / "notes"
@@ -49,36 +49,36 @@ class TestPaper2Note:
 
         assert (note_target_folder / f"{DEFAULT_TEST_PDF_STEM}.md").exists()
 
-    def test_note_template(self, pdf_folder):
+    def test_note_template(self, pdf_folder: str):
         pdf_folder = Path(pdf_folder)
         pdf_path = pdf_folder / f"{DEFAULT_TEST_PDF_STEM}.pdf"
 
         note_template_path = pdf_folder / "template.md"
         with note_template_path.open("w") as f:
-            f.write("the content of the note is {title} - {year} - {author}")
+            f.write("the content of the note is {title} - {year} - {author_1}")
 
         paper2note(pdf_path, note_template_path=note_template_path)
 
         assert (pdf_path.parent / f"{pdf_path.stem}.md").exists()
         assert (
             pdf_path.parent / f"{pdf_path.stem}.md"
-        ).read_text() == "the content of the note is Diffusion Policy: Visuomotor Policy Learning via Action Diffusion - 2023 - Anonymous Author"
+        ).read_text() == "the content of the note is Diffusion Policy: Visuomotor Policy Learning via Action Diffusion - 2023 - Cheng Chi"
 
-    def test_pdf_rename_pattern(self, pdf_folder):
+    def test_pdf_rename_pattern(self, pdf_folder: str):
         pdf_folder = Path(pdf_folder)
         pdf_path = pdf_folder / f"{DEFAULT_TEST_PDF_STEM}.pdf"
 
-        paper2note(pdf_path, pdf_rename_pattern="{title} ({year}) {author}")
+        paper2note(pdf_path, pdf_rename_pattern="{title} ({year}) {author_1}")
 
         assert not pdf_path.exists()
         assert (
             pdf_folder
-            / "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion (2023) Anonymous Author.pdf"
+            / "Diffusion Policy Visuomotor Policy Learning via Action Diffusion (2023) Cheng Chi.pdf"
         ).exists()
 
 
 class TestPaper2NoteEdgeCases:
-    def test_note_exists_already(self, pdf_folder):
+    def test_note_exists_already(self, pdf_folder: str):
         pdf_folder = Path(pdf_folder)
         pdf_path = pdf_folder / f"{DEFAULT_TEST_PDF_STEM}.pdf"
 
@@ -91,7 +91,7 @@ class TestPaper2NoteEdgeCases:
         assert existing_note_path.exists()
         assert existing_note_path.read_text() == "existing note"
 
-    def test_renamed_pdf_exists_already(self, pdf_folder):
+    def test_renamed_pdf_exists_already(self, pdf_folder: str):
         pdf_folder = Path(pdf_folder)
         pdf_path = pdf_folder / f"{DEFAULT_TEST_PDF_STEM}.pdf"
 
@@ -106,46 +106,71 @@ class TestPaper2NoteEdgeCases:
         assert pdf_path.exists()
         assert (pdf_folder / "renamed.md").exists()
 
-    # def test_no_doi_found(pdf_folder):
-    #     pdf_folder = Path(pdf_folder)
-    #     pdf_path = pdf_folder / "pdf.pdf"
+    def test_no_doi_found(self, pdf_folder: str):
+        pdf_folder = Path(pdf_folder)
+        pdf_path = pdf_folder / "empty_document.pdf"
 
-    #     # Call the paper2note function with a PDF that has no DOI
-    #     paper2note(pdf_path)
+        paper2note(pdf_path, pdf_rename_pattern="renamed")
 
-    #     # Assert that no note file was created
-    #     assert not (pdf_path.parent / "pdf.md").exists()
+        assert not (pdf_path.parent / "pdf.md").exists()
+        assert not (pdf_path.parent / "renamed.md").exists()
+        assert not (pdf_path.parent / "renamed.pdf").exists()
+        assert pdf_path.exists()
 
-    # def test_pdf_is_not_a_pdf(pdf_folder):
-    #     pdf_folder = Path(pdf_folder)
-    #     non_pdf_path = pdf_folder / "non_pdf.txt"
+    def test_pdf_is_not_a_pdf(self, pdf_folder: str):
+        pdf_folder = Path(pdf_folder)
+        non_pdf_path = pdf_folder / "non_pdf.pdf"
 
-    #     # Call the paper2note function with a non-PDF file
-    #     paper2note(non_pdf_path)
+        with non_pdf_path.open("w") as f:
+            f.write("this is not a pdf")
 
-    #     # Assert that no note file was created
-    #     assert not (non_pdf_path.parent / "non_pdf.md").exists()
+        paper2note(non_pdf_path, pdf_rename_pattern="renamed")
 
-    # def test_pdf_does_not_exist(pdf_folder):
-    #     pdf_folder = Path(pdf_folder)
-    #     non_existing_pdf_path = pdf_folder / "non_existing_pdf.pdf"
+        assert not (non_pdf_path.parent / "non_pdf.md").exists()
+        assert not (non_pdf_path.parent / "renamed.md").exists()
+        assert not (non_pdf_path.parent / "renamed.pdf").exists()
+        assert non_pdf_path.exists()
 
-    #     # Call the paper2note function with a non-existing PDF file
-    #     paper2note(non_existing_pdf_path)
+    def test_pdf_does_not_exist(self, pdf_folder: str):
+        pdf_folder = Path(pdf_folder)
+        non_existing_pdf_path = pdf_folder / "non_existing_pdf.pdf"
 
-    #     # Assert that no note file was created
-    #     assert not (non_existing_pdf_path.parent / "non_existing_pdf.md").exists()
+        with pytest.raises(FileNotFoundError):
+            paper2note(non_existing_pdf_path, pdf_rename_pattern="renamed")
 
-    # def test_note_template_does_not_exist(pdf_folder):
-    #     pdf_folder = Path(pdf_folder)
-    #     pdf_path = pdf_folder / "pdf.pdf"
-    #     non_existing_template_path = pdf_folder / "non_existing_template.md"
+        assert not (non_existing_pdf_path.parent / "non_existing_pdf.md").exists()
+        assert not (non_existing_pdf_path.parent / "renamed.md").exists()
+        assert not (non_existing_pdf_path.parent / "renamed.pdf").exists()
+        assert not non_existing_pdf_path.exists()
 
-    #     # Call the paper2note function with a non-existing note template path
-    #     paper2note(pdf_path, note_template_path=non_existing_template_path)
+    def test_note_template_does_not_exist(self, pdf_folder: str):
+        pdf_folder = Path(pdf_folder)
+        pdf_path = pdf_folder / f"{DEFAULT_TEST_PDF_STEM}.pdf"
+        non_existing_template_path = pdf_folder / "non_existing_template.md"
 
-    #     # Assert that the note file was created without using a template
-    #     assert (pdf_path.parent / "pdf.md").exists()
+        with pytest.raises(FileNotFoundError):
+            paper2note(pdf_path, note_template_path=non_existing_template_path)
+
+        assert not (pdf_path.parent / f"{pdf_path.stem}.md").exists()
+        assert not non_existing_template_path.exists()
+        assert pdf_path.exists()
+        assert not (pdf_path.parent / f"{DEFAULT_TEST_PDF_STEM}.md").exists()
+
+    def test_invalid_placeholders(self, pdf_folder: str):
+        pdf_folder = Path(pdf_folder)
+        pdf_path = pdf_folder / f"{DEFAULT_TEST_PDF_STEM}.pdf"
+
+        invalid_template_path = pdf_folder / "invalid_template.md"
+        with invalid_template_path.open("w") as f:
+            f.write("the content of the note is {invalid_placeholder} {title}")
+
+        paper2note(pdf_path, note_template_path=invalid_template_path)
+
+        assert (pdf_path.parent / f"{pdf_path.stem}.md").exists()
+        assert pdf_path.exists()
+        assert (
+            pdf_path.parent / f"{pdf_path.stem}.md"
+        ).read_text() == "the content of the note is <'invalid_placeholder' IS AN INVALID PLACEHOLDER> Diffusion Policy: Visuomotor Policy Learning via Action Diffusion"
 
 
 class TestDOIExtraction:
@@ -166,16 +191,16 @@ class TestDOIExtraction:
 
         assert result["metadata"]["title"].lower() == expected_title.lower()
 
-    def test_print_metadata(self, pdf_folder):
-        pdf_folder = Path(pdf_folder)
-        pdf_path = pdf_folder / f"{DEFAULT_TEST_PDF_STEM}.pdf"
+    # def test_print_metadata(self, pdf_folder:str):
+    #     pdf_folder = Path(pdf_folder)
+    #     pdf_path = pdf_folder / f"{DEFAULT_TEST_PDF_STEM}.pdf"
 
-        result = pdf2bib(str(pdf_path))
-        import json
+    #     result = pdf2bib(str(pdf_path))
+    #     import json
 
-        json.dump(result, open("result.json", "w"))
+    #     json.dump(result, open("result.json", "w"))
 
-        print(result["metadata"])
-        print(result)
-        print(result["method"])
-        print("----------------------------------------------------------------")
+    #     print(result["metadata"])
+    #     print(result)
+    #     print(result["method"])
+    #     print("----------------------------------------------------------------")
