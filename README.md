@@ -94,5 +94,9 @@ Emprically I found that one of the methods used by pdf2bib to extract metadata f
 For this reason this library uses a fork of pdf2bib in which I disabled this method.
 See [this issue](https://github.com/MicheleCotrufo/pdf2doi/issues/25) for more information.
 
+## Using Environments
+If you install the package into an environment like conda or venv the command line utility will only be available in this environment.
+However, once you have added the context menu entry, you can use the context menu regardless of the environment you are in.
+
 ## Contribution
 Feel free to open an issue or a pull request if you have any suggestions or found a bug.

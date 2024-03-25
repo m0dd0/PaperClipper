@@ -2,6 +2,9 @@ import winreg as reg
 import argparse
 import sys
 from pathlib import Path
+import logging
+
+logger = logging.getLogger("paper2note")
 
 
 def remove_file_associated_context_command(command_name: str, file_type=".pdf"):
@@ -57,8 +60,8 @@ def parse_args():
     parser.add_argument(
         "--command",
         type=str,
-        default=f'{get_executable_path()} "%1"',
-        help="The command to be executed when the context menu entry is clicked.",
+        default=f'paper2note "%1"',
+        help="The command to be executed when the context menu entry is clicked. Use '%1' as a placeholder for the file path.",
     )
 
     parser.add_argument(
@@ -82,9 +85,9 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--wait-for-exit",
+        "--keep-open",
         action="store_true",
-        help="Wait for the command to finish before closing the window.",
+        help="Keep the command prompt open after the command has been executed.",
     )
 
     args = parser.parse_args()
@@ -103,10 +106,13 @@ def commandline_entrypoint():
         )
         # TODO implement
     else:
-        if args.wait_for_exit:
-            args.command = f"{args.command} && timeout 100"
+        args.command = args.command.replace("paper2note", get_executable_path())
+        args.command = f"{'cmd /k' if args.keep_open else ''} {args.command}"
         create_file_associated_context_command(
             command_name=args.entry_name,
             command=args.command,
             file_type=args.file_type,
+        )
+        logger.info(
+            f"Context menu entry '{args.entry_name}' for file type '{args.file_type}' created."
         )
