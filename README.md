@@ -1,13 +1,12 @@
 # Paper2Note
-This is a little utility that helps to create templated notes from scientific papers. 
-It is designed to work with papers in PDF format, and it is based on the great [pdf2bib library](https://github.com/MicheleCotrufo/pdf2bib).
+This is a little utility that helps to create templated notes from the pdf file of scientific papers using their autoextracted metadata.
+By default the tool also renames the pdf file to the title of the paper.
 
-TODO only windows supported for context menu
+The tool is based on the great [pdf2bib library](https://github.com/MicheleCotrufo/pdf2bib).
+
 
 ## Example Use Case
 I use this tool extensively in conjuction with [logseq](https://logseq.com/) to create a knowledge base of scientific papers without any need to use separate reference management software.
-
-TODO gif here
 
 ## Contents
 
@@ -26,37 +25,67 @@ To create a reference note from a paper, you can use the following command:
 paper2note path/to/paper.pdf
 ```
 
-Without any additional options, the utility will create a markdown file in the same folder as the pdf which corresponds to [this template](paper2note/templates/reference.md).
-If a file with the same name already exists, the utility will do nothing.
+Without any additional options, the utility will set the name of the pdf file to the title of the paper and create a markdown file in the same folder as the pdf which corresponds to [this template](paper2note/templates/reference.md).
+If a file with the same name already exists, the utility will _not_ overwrite.
 
-The utility provides also functionality to rename the pdf file according to the metadata of the paper, configure custom note templates and specify the folder where the note should be saved to:
-```bash
+A couple of configuration options are available to customize the behavior of the utility.
+```txt
 positional arguments:
   pdf                   Path to the pdf file of the paper.
 
 options:
   -h, --help            show this help message and exit
   --pdf-rename-pattern PDF_RENAME_PATTERN
-                        Pattern to rename the pdf file. All entries of the metadata can be used as placeholders. Placeholder must be in curly braces. If not provided no renaming will be executed.
+                        Pattern to rename the pdf file. All entries of the metadata can be used as placeholders.   
+                        Placeholder must be in curly braces. Defaults to the title of the paper. Set to an empty   
+                        string to not rename the pdf file.
   --note-target-folder NOTE_TARGET_FOLDER
-                        Folder where the note should be saved to. Can be an absolute path or relative to the directory from wich the script is called. Defaults to the directory of the pdf file.
+                        Folder where the note should be saved to. Can be an absolute path or relative to the       
+                        directory from wich the script is called. Defaults to the directory of the pdf file.       
   --note-template-path NOTE_TEMPLATE_PATH
-                        Path to the note template. Can be an absolute path or relative to the directory from wich the script is called. Defaults to a default note template.
+                        Path to the note template. Can be an absolute path or relative to the directory from wich  
+                        the script is called. Defaults to a default note template.
   --note-filename-pattern NOTE_FILENAME_PATTERN
-                        Pattern to name the note file. All entries of the metadata can be used as placeholders. Placeholder must be in curly braces. Defaults to '{title}'.
+                        Pattern to name the note file. All entries of the metadata can be used as placeholders.    
+                        Placeholder must be in curly braces. Defaults to the same name as the (renamed) pdf file. 
 ```
 
 ### Context menu
-The command described above can also be executed by right-clicking on a pdf file and selecting the "paper2note" option. 
-To enable this functionality, use the following command:
+As of now, the context menu entry is only available on windows. (I am happy to accept pull requests to add this functionality for other operating systems.) 
+
+#### Installation
+The (default) command described above can also be executed by right-clicking on a pdf file and selecting the "paper2note" option. 
+To enable this functionality, execute the following command in a terminal with administrator rights:
 ```bash
 paper2note-context-menu
 ```
 
-If you want to customize the behavior of the context menu entry, you can pass the command which should be executed when the context menu entry is clicked as an argument to the `paper2note-context-menu` command like this:
+#### Removal
+To remove the context menu entry, execute the following command in a terminal with administrator rights:
 ```bash
-paper2note-context-menu "paper2note --pdf-rename-pattern "{title} - {author}" --note-target-folder "path/to/notes" --note-template-path "path/to/template.md" --note-filename-pattern "{title} - {author}""
+paper2note-context-menu --remove
 ```
+
+#### Customization
+If you want to customize the behavior of the context menu entry, you can pass the arguments for the `paper2note` command to the `paper2note-context-menu` command. In this case all the invocations of the context menu entry will use the passed arguments.
+For example:
+```bash
+paper2note-context-menu '--pdf-rename-pattern "{title} - {author}" --note-target-folder "path/to/notes" --note-template-path "path/to/template.md" --note-filename-pattern "{title} - {year}"'
+```
+
+You can adapt the behavior of the context menu entry further with the following options:
+```txt
+positional arguments:
+  arguments             The command args to configure the context menu entry with. If nothing given all the default args will be used.
+
+options:
+  -h, --help            show this help message and exit
+  --entry-name ENTRY_NAME
+                        The displayed name of the context menu entry.
+  --remove              Remove the context menu entry instead of creating it.
+  --keep-open           Keep the command prompt open after the command has been executed.
+```
+
 
 ### Python Library
 The utility can also be used as a python library. 
@@ -83,9 +112,14 @@ Sometimes not all metadata can be extracted from the pdf file. In this case the 
 - `volume`: The volume of the journal
 - `page`: The page of the journal
 - `abstract`: The abstract of the paper
+- `bibtex`: The full unmodified bibtex entry of the paper
 - `type`: The type of the paper
 - `author_i`: The i-th author of the paper were i is a number between 1 and the number of authors
 - `author_last`: The last named author of the paper
+- `logseq_author_listing`: A string of comma separated author names in the form [[author1]], [[author2]], ... for use in logseq
+- `extraction_method`: The method used to extract the metadata from the pdf file
+- `path`: The path to the (renamed) pdf file
+- `relative_logseq_path`: If the pdf is located in a subdirectory of the logseq directory, this key contains the relative path to the pdf file from the logseq directory. Otherwise it is an empty string.
 
 ## Accuracy of results
 This utility uses the [pdf2bib](https://github.com/MicheleCotrufo/pdf2bib) library to extract metadata from the pdf file.
