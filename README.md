@@ -10,6 +10,19 @@ I use this tool extensively in conjuction with [logseq](https://logseq.com/) to 
 You can have a look at the [step by step guide](docs/logseq_integration.md) for more information.
 
 ## Contents
+This README is structured in the following way:
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Command line](#command-line)
+  - [Context menu](#context-menu)
+    - [Installation](#installation-1)
+    - [Removal](#removal)
+    - [Customization](#customization)
+  - [Python Library](#python-library)
+- [Metadata](#metadata)
+- [Accuracy of results](#accuracy-of-results)
+- [Using Environments](#using-environments)
+- [Contribution](#contribution)
 
 ## Installation
 To install the package, you can use pip:
