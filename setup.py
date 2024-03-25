@@ -19,6 +19,8 @@ setup(
             "paper2note-context-menu = paper2note.context_menu:commandline_entrypoint",
         ],
     },
+    package_data={'': ["templates/*"]},
+    include_package_data=True,
     url="https://github.com/m0dd0/paper2note",
     author="Moritz Hesche",
     author_email="mo.hesche@gmail.com",
