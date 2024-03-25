@@ -39,14 +39,14 @@ def create_file_associated_context_command(
     reg.CloseKey(key)
 
 
-def get_executable_path():
+def get_executable_path() -> str:
     python_folder = Path(sys.executable).parent
     if python_folder.parts[-1].lower() == "scripts":
-        paper2note_executable_path = python_folder + "\pdf2bib.exe"
+        paper2note_executable_path = python_folder / "pdf2bib.exe"
     else:
-        paper2note_executable_path = python_folder + "\scripts\paper2note.exe"
+        paper2note_executable_path = python_folder / "scripts" / "paper2note.exe"
 
-    return paper2note_executable_path
+    return str(paper2note_executable_path)
 
 
 def parse_args():
@@ -55,14 +55,14 @@ def parse_args():
     )
 
     parser.add_argument(
-        "command",
+        "--command",
         type=str,
         default=f'{get_executable_path()} "%1"',
         help="The command to be executed when the context menu entry is clicked.",
     )
 
     parser.add_argument(
-        "file_type",
+        "--file_type",
         type=str,
         default=".pdf",
         help="The file type for which the context menu entry should be created.",
@@ -81,6 +81,12 @@ def parse_args():
         help="Remove the context menu entry instead of creating it.",
     )
 
+    parser.add_argument(
+        "--wait-for-exit",
+        action="store_true",
+        help="Wait for the command to finish before closing the window.",
+    )
+
     args = parser.parse_args()
 
     return args
@@ -95,16 +101,12 @@ def commandline_entrypoint():
         raise NotImplementedError(
             "The removal of context menu entries is not yet implemented."
         )
+        # TODO implement
     else:
+        if args.wait_for_exit:
+            args.command = f"{args.command} && timeout 100"
         create_file_associated_context_command(
             command_name=args.entry_name,
             command=args.command,
             file_type=args.file_type,
         )
-
-
-if __name__ == "__main__":
-    create_file_associated_context_command(
-        "paper2note", 'C:\\Users\\mohes\\miniconda3\\Scripts\\paper2note "%1"'
-    )
-    print("Successfully created context menu entry for paper2note.")

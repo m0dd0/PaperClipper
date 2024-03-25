@@ -3,6 +3,7 @@ import argparse
 from typing import Dict
 import logging
 import string
+import json
 
 import pdf2bib
 import pdf2doi
@@ -32,6 +33,10 @@ def clean_metadata(extraction_result: Dict) -> Dict:
         Dict: The cleaned metadata which is used for the templating operation.
     """
     metadata = extraction_result["metadata"] or {}
+    validation_info = extraction_result["validation_info"] or {}
+    if isinstance(validation_info, str):
+        validation_info = json.loads(validation_info)
+    validation_info = dict(validation_info)
 
     authors_list = metadata.get("author", [])
     authors_list = [f"{author['given']} {author['family']}" for author in authors_list]
@@ -50,10 +55,14 @@ def clean_metadata(extraction_result: Dict) -> Dict:
         "volume": metadata.get("volume") or "<no volume found>",
         "page": metadata.get("page") or "<no page found>",
         "type": metadata.get("ENTRYTYPE") or "article",
-        "abstract": (extraction_result["validation_info"] or {}).get("summary")
-        or "<no abstract found>",
+        "abstract": (
+            validation_info.get("summary")
+            or validation_info.get("abstract")
+            or "<no abstract found>"
+        ).replace("\n", " "),
         "bibtex": extraction_result.get("bibtex") or "<no bibtex found>",
         "extraction_method": extraction_result["method"],
+        "logseq_author_listing": "[[" + "]], [[".join(authors_list) + "]]",
     }
 
     for i, author in enumerate(authors_list):
@@ -83,6 +92,18 @@ def format_pattern(string_to_format: str, data: Dict, is_filename: bool = False)
         string_to_format = sanitize_filepath(string_to_format)
 
     return string_to_format
+
+
+def get_relative_logseq_path(path: Path) -> Path:
+    path = path.resolve()
+    full_path = path
+
+    while not (path / "logseq").exists():
+        path = path.parent
+        if path == Path.home():
+            return None
+
+    return full_path.relative_to(path)
 
 
 def paper2note(
@@ -157,7 +178,9 @@ def paper2note(
         pdf.rename(new_pdf_path)
     else:
         logger.info(f"Did not rename {pdf}.")
-    data["path"] = new_pdf_path
+    data["path"] = str(new_pdf_path)
+    data["relative_logseq_path"] = str(get_relative_logseq_path(new_pdf_path))
+    logger.info(f"Metadata extracted: {data}")
 
     ### create note.md ###
     note_path = (

@@ -191,16 +191,16 @@ class TestDOIExtraction:
 
         assert result["metadata"]["title"].lower() == expected_title.lower()
 
-    # def test_print_metadata(self, pdf_folder:str):
-    #     pdf_folder = Path(pdf_folder)
-    #     pdf_path = pdf_folder / f"{DEFAULT_TEST_PDF_STEM}.pdf"
+    def test_print_metadata(self, pdf_folder: str):
+        pdf_folder = Path(pdf_folder)
+        pdf_path = pdf_folder / f"{DEFAULT_TEST_PDF_STEM}.pdf"
 
-    #     result = pdf2bib(str(pdf_path))
-    #     import json
+        result = pdf2bib(str(pdf_path))
+        import json
 
-    #     json.dump(result, open("result.json", "w"))
+        json.dump(result, open("result.json", "w"))
 
-    #     print(result["metadata"])
-    #     print(result)
-    #     print(result["method"])
-    #     print("----------------------------------------------------------------")
+        print(result["metadata"])
+        print(result)
+        print(result["method"])
+        print("----------------------------------------------------------------")

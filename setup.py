@@ -16,7 +16,7 @@ setup(
     entry_points={
         "console_scripts": [
             "paper2note = paper2note.paper2note:commandline_entrypoint",
-            "paper2note-context-menu = paper2note.create_context_menu_entry:commandline_entrypoint",
+            "paper2note-context-menu = paper2note.context_menu:commandline_entrypoint",
         ],
     },
     url="https://github.com/m0dd0/paper2note",
