@@ -175,6 +175,12 @@ def paper2note(
         return
     data = clean_metadata(result)
 
+    # somttimes a google cookie is set when using websearch to extract the doi
+    # we remove it to keep the folder clean
+    if (pdf.parent / ".google-cookie").exists():
+        (pdf.parent / ".google-cookie").unlink()
+        logger.info("Removed google cookie.")
+
     ### rename pdf ###
     new_pdf_path = pdf.parent / f"{format_pattern(pdf_rename_pattern, data, True)}.pdf"
     if new_pdf_path != pdf and not new_pdf_path.exists():
