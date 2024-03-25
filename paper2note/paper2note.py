@@ -190,7 +190,7 @@ def paper2note(
         logger.info(f"Did not rename {pdf}.")
     data["path"] = str(new_pdf_path)
     data["relative_logseq_path"] = str(get_relative_logseq_path(new_pdf_path))
-    logger.info(f"Metadata extracted: {pprint.pformat(data)}")
+    # logger.info(f"Metadata extracted: {pprint.pformat(data)}")
 
     ### create note.md ###
     note_path = (
@@ -246,10 +246,14 @@ def parse_args() -> None:
 
 def commandline_entrypoint() -> None:
     args = parse_args()
-    paper2note(
-        args.pdf,
-        args.pdf_rename_pattern if args.pdf_rename_pattern != "" else None,
-        args.note_target_folder,
-        args.note_template_path,
-        args.note_filename_pattern,
-    )
+    try:
+        paper2note(
+            args.pdf,
+            args.pdf_rename_pattern if args.pdf_rename_pattern != "" else None,
+            args.note_target_folder,
+            args.note_template_path,
+            args.note_filename_pattern,
+        )
+    except Exception as e:
+        logger.error("An error occured.")
+        logger.error(e)

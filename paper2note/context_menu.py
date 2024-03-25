@@ -91,10 +91,10 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--command",
+        "--command-args",
         type=str,
-        default=f'paper2note "%1"',
-        help="The command to be executed when the context menu entry is clicked. Use '%1' as a placeholder for the file path.",
+        default="",
+        help="The command args to configure the context menu entry with. If nothing given all the default args will be used.",
     )
 
     parser.add_argument(
@@ -131,9 +131,10 @@ def commandline_entrypoint():
         remove_file_associated_context_command(args.entry_name)
         logger.info(f"Context menu entry '{args.entry_name}' removed.")
     else:
-        args.command = args.command.replace("paper2note", get_executable_path())
-        args.command = f"{'cmd /k' if args.keep_open else ''} {args.command}"
+        command = f'{"cmd /k " if args.keep_open else ""}{get_executable_path()} "%1" {args.command_args}'
         create_file_associated_context_command(
-            command_name=args.entry_name, command=args.command
+            command_name=args.entry_name, command=command
         )
-        logger.info(f"Context menu entry '{args.entry_name}' created.")
+        logger.info(
+            f"Context menu entry '{args.entry_name}' created for command '{command}'."
+        )
