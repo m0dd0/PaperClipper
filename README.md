@@ -4,9 +4,10 @@ By default the tool also renames the pdf file to the title of the paper.
 
 The tool is based on the great [pdf2bib library](https://github.com/MicheleCotrufo/pdf2bib).
 
-
 ## Example Use Case
 I use this tool extensively in conjuction with [logseq](https://logseq.com/) to create a knowledge base of scientific papers without any need to use separate reference management software.
+
+You can have a look at the [step by step guide](docs/logseq_integration.md) for more information.
 
 ## Contents
 
