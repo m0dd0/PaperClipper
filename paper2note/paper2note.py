@@ -188,8 +188,10 @@ def paper2note(
         pdf.rename(new_pdf_path)
     else:
         logger.info(f"Did not rename {pdf}.")
-    data["path"] = str(new_pdf_path)
-    data["relative_logseq_path"] = str(get_relative_logseq_path(new_pdf_path))
+    data["path"] = str(new_pdf_path).replace("\\", "/")
+    data["relative_logseq_path"] = str(get_relative_logseq_path(new_pdf_path)).replace(
+        "\\", "/"
+    )
     # logger.info(f"Metadata extracted: {pprint.pformat(data)}")
 
     ### create note.md ###
