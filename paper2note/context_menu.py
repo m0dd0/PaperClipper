@@ -1,4 +1,4 @@
-import winreg as reg
+import winreg
 import argparse
 import sys
 from pathlib import Path
@@ -8,6 +8,30 @@ import os
 logger = logging.getLogger("paper2note")
 
 
+def delete_sub_key(root: str, sub: str):
+    """Delete a registry key and all its subkeys.
+
+    Args:
+        root (str): The root key.
+        sub (str): The subkey to be deleted.
+    """
+    # credits: https://stackoverflow.com/questions/38205784/python-how-to-delete-registry-key-and-subkeys-from-hklm-getting-error-5
+    try:
+        open_key = winreg.OpenKey(root, sub, 0, winreg.KEY_ALL_ACCESS)
+        num, _, _ = winreg.QueryInfoKey(open_key)
+        for _ in range(num):
+            child = winreg.EnumKey(open_key, 0)
+            delete_sub_key(open_key, child)
+        try:
+            winreg.DeleteKey(open_key, "")
+        except Exception:
+            logger.error(f"Failed to delete key {sub}")
+        finally:
+            winreg.CloseKey(open_key)
+    except Exception:
+        logger.error(f"Failed to open key {sub}")
+
+
 def remove_file_associated_context_command(command_name: str, file_type=".pdf"):
     """Remove a context menu entry for a file type.
 
@@ -15,10 +39,9 @@ def remove_file_associated_context_command(command_name: str, file_type=".pdf"):
         command_name (str): The name of the command.
         file_type (str, optional): The file type for which the context menu entry should be removed. Defaults to ".pdf".
     """
-
     key_name = f"SystemFileAssociations\\{file_type}\\shell\\{command_name}"
-    reg.DeleteKey(reg.HKEY_CLASSES_ROOT, key_name)
-    # TODO test
+
+    delete_sub_key(winreg.HKEY_CLASSES_ROOT, key_name)
 
 
 def create_file_associated_context_command(
@@ -36,14 +59,23 @@ def create_file_associated_context_command(
 
     key_name = f"SystemFileAssociations\\{file_type}\\shell\\{command_name}"
 
-    key = reg.CreateKey(reg.HKEY_CLASSES_ROOT, key_name)
-    reg.CloseKey(key)
-    key = reg.CreateKey(reg.HKEY_CLASSES_ROOT, f"{key_name}\\command")
-    reg.SetValue(key, "", reg.REG_SZ, command)
-    reg.CloseKey(key)
+    key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, key_name)
+    winreg.CloseKey(key)
+    key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, f"{key_name}\\command")
+    winreg.SetValue(key, "", winreg.REG_SZ, command)
+    winreg.CloseKey(key)
 
 
 def get_executable_path() -> str:
+    """Get the path to the paper2note executable.
+
+    This is necessary to create a context menu entry as the command must be an absolute path.
+    Also accounts for the case when the script is executed from a virtual environment.
+
+    Returns:
+        str: The path to the paper2note executable.
+    """
+
     python_folder = Path(sys.executable).parent
     if python_folder.parts[-1].lower() == "scripts":
         paper2note_executable_path = python_folder / "pdf2bib.exe"
@@ -63,13 +95,6 @@ def parse_args():
         type=str,
         default=f'paper2note "%1"',
         help="The command to be executed when the context menu entry is clicked. Use '%1' as a placeholder for the file path.",
-    )
-
-    parser.add_argument(
-        "--file_type",
-        type=str,
-        default=".pdf",
-        help="The file type for which the context menu entry should be created.",
     )
 
     parser.add_argument(
@@ -103,18 +128,12 @@ def commandline_entrypoint():
         raise NotImplementedError("This script is only implemented for Windows.")
 
     if args.remove:
-        raise NotImplementedError(
-            "The removal of context menu entries is not yet implemented."
-        )
-        # TODO implement
+        remove_file_associated_context_command(args.entry_name)
+        logger.info(f"Context menu entry '{args.entry_name}' removed.")
     else:
         args.command = args.command.replace("paper2note", get_executable_path())
         args.command = f"{'cmd /k' if args.keep_open else ''} {args.command}"
         create_file_associated_context_command(
-            command_name=args.entry_name,
-            command=args.command,
-            file_type=args.file_type,
+            command_name=args.entry_name, command=args.command
         )
-        logger.info(
-            f"Context menu entry '{args.entry_name}' for file type '{args.file_type}' created."
-        )
+        logger.info(f"Context menu entry '{args.entry_name}' created.")
