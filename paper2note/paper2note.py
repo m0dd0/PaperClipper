@@ -209,8 +209,8 @@ def parse_args() -> None:
     parser.add_argument(
         "--pdf-rename-pattern",
         type=str,
-        # default="{title}.pdf",
-        help="Pattern to rename the pdf file. All entries of the metadata can be used as placeholders. Placeholder must be in curly braces. If not provided no renaming will be executed.",
+        default="{title}.pdf",
+        help="Pattern to rename the pdf file. All entries of the metadata can be used as placeholders. Placeholder must be in curly braces. Defaults to the title of the paper. Set to an empty string to not rename the pdf file.",
     )
     parser.add_argument(
         "--note-target-folder",
@@ -238,7 +238,7 @@ def commandline_entrypoint() -> None:
     args = parse_args()
     paper2note(
         args.pdf,
-        args.pdf_rename_pattern,
+        args.pdf_rename_pattern if args.pdf_rename_pattern != "" else None,
         args.note_target_folder,
         args.note_template_path,
         args.note_filename_pattern,
