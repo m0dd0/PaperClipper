@@ -4,6 +4,7 @@ from typing import Dict
 import logging
 import string
 import json
+import pprint
 
 import pdf2bib
 import pdf2doi
@@ -13,6 +14,7 @@ logger = logging.getLogger("paper2note")
 
 
 def input_validate_path(path: str, must_exist: bool = False) -> Path:
+    # TODO docstring
     path = Path(path)
     if not path.is_absolute():
         path = Path.cwd() / path
@@ -75,6 +77,7 @@ def clean_metadata(extraction_result: Dict) -> Dict:
 
 
 def format_pattern(string_to_format: str, data: Dict, is_filename: bool = False) -> str:
+    # TODO docstring
     field_names = [
         field
         for _, field, _, _ in string.Formatter().parse(string_to_format)
@@ -95,6 +98,7 @@ def format_pattern(string_to_format: str, data: Dict, is_filename: bool = False)
 
 
 def get_relative_logseq_path(path: Path) -> Path:
+    # TODO docstring
     path = path.resolve()
     full_path = path
 
@@ -180,7 +184,7 @@ def paper2note(
         logger.info(f"Did not rename {pdf}.")
     data["path"] = str(new_pdf_path)
     data["relative_logseq_path"] = str(get_relative_logseq_path(new_pdf_path))
-    logger.info(f"Metadata extracted: {data}")
+    logger.info(f"Metadata extracted: {pprint.pformat(data)}")
 
     ### create note.md ###
     note_path = (
