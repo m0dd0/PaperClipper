@@ -3,6 +3,7 @@ import argparse
 import sys
 from pathlib import Path
 import logging
+import os
 
 logger = logging.getLogger("paper2note")
 
@@ -98,7 +99,8 @@ def parse_args():
 def commandline_entrypoint():
     args = parse_args()
 
-    # TODO check for OS
+    if not os.name == "nt":
+        raise NotImplementedError("This script is only implemented for Windows.")
 
     if args.remove:
         raise NotImplementedError(

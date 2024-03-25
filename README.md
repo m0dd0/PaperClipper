@@ -2,6 +2,8 @@
 This is a little utility that helps to create templated notes from scientific papers. 
 It is designed to work with papers in PDF format, and it is based on the great [pdf2bib library](https://github.com/MicheleCotrufo/pdf2bib).
 
+TODO only windows supported for context menu
+
 ## Example Use Case
 I use this tool extensively in conjuction with [logseq](https://logseq.com/) to create a knowledge base of scientific papers without any need to use separate reference management software.
 
