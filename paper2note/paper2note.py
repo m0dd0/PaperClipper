@@ -151,7 +151,7 @@ def paper2note(
 
     note_template_path = (
         note_template_path
-        or Path(__file__).parent.parent / "templates" / "default_note_template.md"
+        or Path(__file__).parent / "templates" / "default_note_template.md"
     )
     note_template_path = input_validate_path(note_template_path, must_exist=True)
 
