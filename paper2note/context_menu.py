@@ -91,10 +91,11 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--command-args",
+        "arguments",
         type=str,
         default="",
         help="The command args to configure the context menu entry with. If nothing given all the default args will be used.",
+        nargs="?",
     )
 
     parser.add_argument(
@@ -131,7 +132,7 @@ def commandline_entrypoint():
         remove_file_associated_context_command(args.entry_name)
         logger.info(f"Context menu entry '{args.entry_name}' removed.")
     else:
-        command = f'{"cmd /k " if args.keep_open else ""}{get_executable_path()} "%1" {args.command_args}'
+        command = f'{"cmd /k " if args.keep_open else ""}{get_executable_path()} "%1" {args.arguments}'
         create_file_associated_context_command(
             command_name=args.entry_name, command=command
         )
