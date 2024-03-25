@@ -7,7 +7,7 @@ The tool is based on the great [pdf2bib library](https://github.com/MicheleCotru
 ## Example Use Case
 I use this tool extensively in conjuction with [logseq](https://logseq.com/) to create a knowledge base of scientific papers without any need to use separate reference management software.
 
-You can have a look at the [step by step guide](docs/logseq_integration.md) for more information.
+You can have a look at the [step by step guide](docs/logseq_integration_step_by_step.md) for more information.
 
 ## Contents
 This README is structured in the following way:
