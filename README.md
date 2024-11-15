@@ -50,25 +50,25 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   --pdf-rename-pattern PDF_RENAME_PATTERN
-                        Pattern to rename the pdf file. All entries of the metadata can be used as placeholders.   
-                        Placeholder must be in curly braces. Defaults to the title of the paper. Set to an empty   
+                        Pattern to rename the pdf file. All entries of the metadata can be used as placeholders.
+                        Placeholder must be in curly braces. Defaults to the title of the paper. Set to an empty
                         string to not rename the pdf file.
   --note-target-folder NOTE_TARGET_FOLDER
-                        Folder where the note should be saved to. Can be an absolute path or relative to the       
-                        directory from wich the script is called. Defaults to the directory of the pdf file.       
+                        Folder where the note should be saved to. Can be an absolute path or relative to the
+                        directory from wich the script is called. Defaults to the directory of the pdf file.
   --note-template-path NOTE_TEMPLATE_PATH
-                        Path to the note template. Can be an absolute path or relative to the directory from wich  
+                        Path to the note template. Can be an absolute path or relative to the directory from wich
                         the script is called. Defaults to a default note template.
   --note-filename-pattern NOTE_FILENAME_PATTERN
-                        Pattern to name the note file. All entries of the metadata can be used as placeholders.    
-                        Placeholder must be in curly braces. Defaults to the same name as the (renamed) pdf file. 
+                        Pattern to name the note file. All entries of the metadata can be used as placeholders.
+                        Placeholder must be in curly braces. Defaults to the same name as the (renamed) pdf file.
 ```
 
 ### Context menu
-As of now, the context menu entry is only available on windows. (I am happy to accept pull requests to add this functionality for other operating systems.) 
+As of now, the context menu entry is only available on windows. (I am happy to accept pull requests to add this functionality for other operating systems.)
 
 #### Installation
-The (default) command described above can also be executed by right-clicking on a pdf file and selecting the "paper2note" option. 
+The (default) command described above can also be executed by right-clicking on a pdf file and selecting the "paper2note" option.
 To enable this functionality, execute the following command in a terminal with administrator rights:
 ```bash
 paper2note-context-menu
@@ -102,7 +102,7 @@ options:
 
 
 ### Python Library
-The utility can also be used as a python library. 
+The utility can also be used as a python library.
 The library contains exactly one function, `paper2note`.
 The following example shows how to create a reference note from a paper:
 ```python
@@ -134,6 +134,8 @@ Sometimes not all metadata can be extracted from the pdf file. In this case the 
 - `extraction_method`: The method used to extract the metadata from the pdf file
 - `path`: The path to the (renamed) pdf file
 - `relative_logseq_path`: If the pdf is located in a subdirectory of the logseq directory, this key contains the relative path to the pdf file from the logseq directory. Otherwise it is an empty string.
+- `filename`: The name of the (renamed) pdf file (i.e. the final component of the path)
+- `filename_without_extension`: The name of the (renamed) pdf file without the extension
 
 ## Accuracy of results
 This utility uses the [pdf2bib](https://github.com/MicheleCotrufo/pdf2bib) library to extract metadata from the pdf file.

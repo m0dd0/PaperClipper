@@ -192,6 +192,8 @@ def paper2note(
     data["relative_logseq_path"] = str(get_relative_logseq_path(new_pdf_path)).replace(
         "\\", "/"
     )
+    data["filename"] = new_pdf_path.name
+    data["filename_without_extension"] = new_pdf_path.stem
     # logger.info(f"Metadata extracted: {pprint.pformat(data)}")
 
     ### create note.md ###
